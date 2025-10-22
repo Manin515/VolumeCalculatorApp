@@ -22,61 +22,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Debug - Check what's installed
+    - name: Build application (full output)
       run: |
-        python -c "import numpy; print('NumPy:', numpy.__version__)"
-        python -c "import matplotlib; print('Matplotlib:', matplotlib.__version__)"
-        python -c "import sympy; print('SymPy:', sympy.__version__)"
-        python -c "import tkinter; print('Tkinter available')"
+        echo "=== Starting py2app build ==="
+        python setup.py py2app
+        echo "=== Build finished with exit code: $? ==="
         
-    - name: Test script imports
+    - name: Check what was built
       run: |
-        cd src
-        python -c "
-        import matplotlib
-        matplotlib.use('TkAgg')
-        import volume_calculator_gui
-        print('✅ All imports successful!')
-        "
+        echo "=== Current directory structure ==="
+        ls -la
+        echo "=== Build folder ==="
+        ls -la build/ 2>/dev/null || echo "No build folder"
+        echo "=== Dist folder ==="
+        ls -la dist/ 2>/dev/null || echo "No dist folder"
+        echo "=== Searching for any .app files ==="
+        find . -name "*.app" -type d 2>/dev/null | head -10 || echo "No .app files found anywhere"
         
-    - name: Build application with detailed output
+    - name: Try alternative build method
       run: |
-        python setup.py py2app 2>&1 | head -100
-        echo "=== Build command finished ==="
+        echo "=== Trying py2app with different options ==="
+        rm -rf build dist 2>/dev/null || true
+        python setup.py py2app --packages=matplotlib,numpy,sympy,tkinter
         
-    - name: Check build results
+    - name: Check alternative build
       run: |
-        echo "=== Checking build folder ==="
-        ls -la build/ || echo "No build folder"
-        echo "=== Checking dist folder ==="
-        ls -la dist/ || echo "No dist folder"
-        echo "=== Checking for .app file ==="
-        find . -name "*.app" -type d 2>/dev/null || echo "No .app files found"
-        
-    - name: Build with alias mode (debug)
-      run: |
-        python setup.py py2app -A
-        echo "=== Alias mode build finished ==="
-        ls -la dist/ || echo "No dist folder in alias mode"
-        
-    - name: Create ZIP if app exists
-      id: zip_creator
-      run: |
-        if [ -d "dist/volume_calculator_gui.app" ]; then
-          echo "✅ App found, creating ZIP"
-          cd dist
-          zip -r VolumeCalculator-macOS.zip volume_calculator_gui.app
-          ls -la
-          echo "ZIP_CREATED=true" >> $GITHUB_OUTPUT
-        else
-          echo "❌ No app found in dist folder"
-          echo "ZIP_CREATED=false" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Upload artifact
-      if: steps.zip_creator.outputs.ZIP_CREATED == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: VolumeCalculator-macOS
-        path: dist/VolumeCalculator-macOS.zip
-        retention-days: 30
+        echo "=== After alternative build ==="
+        ls -la dist/ 2>/dev/null || echo "No dist folder after alternative build"
