@@ -12,38 +12,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python
+    - name: Set up Python 3.8
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
-        
-    - name: Display Python info
-      run: |
-        python --version
-        which python
+        python-version: '3.8'
         
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Debug - List files
-      run: |
-        ls -la
-        ls -la src/
-        
-    - name: Test Python script
-      run: |
-        cd src
-        python -c "import volume_calculator_gui; print('Script imports successfully')"
-        
     - name: Build application
       run: |
         python setup.py py2app
-        
-    - name: List build results
-      run: |
-        ls -la dist/
         
     - name: Create ZIP archive
       run: |
