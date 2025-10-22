@@ -1,19 +1,32 @@
-import matplotlib
-matplotlib.use('TkAgg')  # Set the backend before importing pyplot
-
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import sympy as sp
-import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog, filedialog
 import sys
 import os
+
+# Set matplotlib backend first
+import matplotlib
+matplotlib.use('TkAgg')
+
 try:
-    from stl import mesh
-    STL_AVAILABLE = True
-except ImportError:
-    STL_AVAILABLE = False
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    import sympy as sp
+    import tkinter as tk
+    from tkinter import ttk, messagebox, simpledialog, filedialog
+    
+    # Optional STL support
+    try:
+        from stl import mesh
+        STL_AVAILABLE = True
+        print("STL support: Enabled")
+    except ImportError:
+        STL_AVAILABLE = False
+        print("STL support: Disabled")
+        
+    print("✅ All imports successful!")
+    
+except ImportError as e:
+    print(f"❌ Import error: {e}")
+    sys.exit(1)
 
 class VolumeCalculator:
     def __init__(self):
