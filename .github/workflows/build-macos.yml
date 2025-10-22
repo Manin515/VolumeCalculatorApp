@@ -12,40 +12,58 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
-        python-version: '3.8'
+        python-version: '3.9'
         
-    - name: Install dependencies
+    - name: Install system dependencies
+      run: |
+        # Install system libraries needed for matplotlib
+        brew install libpng freetype pkg-config
+        
+    - name: Install Python dependencies with pre-built wheels
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install wheel
+        # Install with --no-build-isolation to use system libraries
+        pip install --no-build-isolation --only-binary=:all: -r requirements.txt
         
-    - name: Build application (full output)
+    - name: Verify installations
       run: |
-        echo "=== Starting py2app build ==="
+        python -c "import numpy; print('NumPy:', numpy.__version__)"
+        python -c "import matplotlib; print('Matplotlib:', matplotlib.__version__)"
+        python -c "import sympy; print('SymPy:', sympy.__version__)"
+        python -c "import tkinter; print('Tkinter available')"
+        
+    - name: Build application
+      run: |
         python setup.py py2app
-        echo "=== Build finished with exit code: $? ==="
         
-    - name: Check what was built
+    - name: Check build results
       run: |
-        echo "=== Current directory structure ==="
-        ls -la
-        echo "=== Build folder ==="
-        ls -la build/ 2>/dev/null || echo "No build folder"
-        echo "=== Dist folder ==="
-        ls -la dist/ 2>/dev/null || echo "No dist folder"
-        echo "=== Searching for any .app files ==="
-        find . -name "*.app" -type d 2>/dev/null | head -10 || echo "No .app files found anywhere"
+        echo "=== Checking for .app file ==="
+        if [ -d "dist/volume_calculator_gui.app" ]; then
+          echo "✅ App created successfully!"
+          ls -la dist/volume_calculator_gui.app/Contents/
+        else
+          echo "❌ No app file found"
+          echo "=== Checking dist folder ==="
+          ls -la dist/ || echo "No dist folder"
+          echo "=== Checking build folder ==="
+          ls -la build/ || echo "No build folder"
+        fi
         
-    - name: Try alternative build method
+    - name: Create ZIP if app exists
+      if: success()
       run: |
-        echo "=== Trying py2app with different options ==="
-        rm -rf build dist 2>/dev/null || true
-        python setup.py py2app --packages=matplotlib,numpy,sympy,tkinter
+        cd dist
+        zip -r VolumeCalculator-macOS.zip volume_calculator_gui.app
         
-    - name: Check alternative build
-      run: |
-        echo "=== After alternative build ==="
-        ls -la dist/ 2>/dev/null || echo "No dist folder after alternative build"
+    - name: Upload artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: VolumeCalculator-macOS
+        path: dist/VolumeCalculator-macOS.zip
+        retention-days: 30
