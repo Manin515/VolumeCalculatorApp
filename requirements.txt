@@ -1,0 +1,5 @@
+numpy>=1.21.0
+matplotlib>=3.5.0
+sympy>=1.9.0
+numpy-stl>=2.16.0
+py2app>=0.28.0
