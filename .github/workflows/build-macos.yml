@@ -22,16 +22,59 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Build application
+    - name: Debug - Check what's installed
       run: |
-        python setup.py py2app
+        python -c "import numpy; print('NumPy:', numpy.__version__)"
+        python -c "import matplotlib; print('Matplotlib:', matplotlib.__version__)"
+        python -c "import sympy; print('SymPy:', sympy.__version__)"
+        python -c "import tkinter; print('Tkinter available')"
         
-    - name: Create ZIP archive
+    - name: Test script imports
       run: |
-        cd dist
-        zip -r VolumeCalculator-macOS.zip volume_calculator_gui.app
+        cd src
+        python -c "
+        import matplotlib
+        matplotlib.use('TkAgg')
+        import volume_calculator_gui
+        print('✅ All imports successful!')
+        "
+        
+    - name: Build application with detailed output
+      run: |
+        python setup.py py2app 2>&1 | head -100
+        echo "=== Build command finished ==="
+        
+    - name: Check build results
+      run: |
+        echo "=== Checking build folder ==="
+        ls -la build/ || echo "No build folder"
+        echo "=== Checking dist folder ==="
+        ls -la dist/ || echo "No dist folder"
+        echo "=== Checking for .app file ==="
+        find . -name "*.app" -type d 2>/dev/null || echo "No .app files found"
+        
+    - name: Build with alias mode (debug)
+      run: |
+        python setup.py py2app -A
+        echo "=== Alias mode build finished ==="
+        ls -la dist/ || echo "No dist folder in alias mode"
+        
+    - name: Create ZIP if app exists
+      if: success()
+      run: |
+        if [ -d "dist/volume_calculator_gui.app" ]; then
+          echo "✅ App found, creating ZIP"
+          cd dist
+          zip -r VolumeCalculator-macOS.zip volume_calculator_gui.app
+          ls -la
+        else
+          echo "❌ No app found in dist folder"
+          # Try to find any .app files
+          find . -name "*.app" -type d
+        fi
         
     - name: Upload artifact
+      if: success() && exists('dist/VolumeCalculator-macOS.zip')
       uses: actions/upload-artifact@v4
       with:
         name: VolumeCalculator-macOS
