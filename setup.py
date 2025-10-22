@@ -7,12 +7,13 @@ from setuptools import setup
 APP = ['src/volume_calculator_gui.py']
 DATA_FILES = []
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,  # Set to False for Tkinter apps
     'packages': ['numpy', 'matplotlib', 'sympy', 'tkinter'],
     'includes': [
         'numpy',
         'matplotlib',
-        'matplotlib.backends.backend_tkagg',
+        'matplotlib.backends.backend_tkagg',  # Important for TkAgg
+        'matplotlib.backends.backend_tk',
         'matplotlib.pyplot',
         'mpl_toolkits.mplot3d',
         'sympy',
