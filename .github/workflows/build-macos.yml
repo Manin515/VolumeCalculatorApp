@@ -2,11 +2,7 @@ name: Build macOS Application
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  release:
-    types: [created]
+    branches: [ main ]
 
 jobs:
   build-macos:
@@ -16,54 +12,47 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python 3.11
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.9'
         
-    - name: Install system dependencies
+    - name: Display Python info
       run: |
-        brew update
-        # Install any system dependencies if needed
+        python --version
+        which python
         
-    - name: Install Python dependencies
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Build application with py2app
+    - name: Debug - List files
+      run: |
+        ls -la
+        ls -la src/
+        
+    - name: Test Python script
+      run: |
+        cd src
+        python -c "import volume_calculator_gui; print('Script imports successfully')"
+        
+    - name: Build application
       run: |
         python setup.py py2app
-        # Check if the app was created
-        ls -la dist/
         
-    - name: Test the application (basic check)
+    - name: List build results
       run: |
-        # Check if the app structure is correct
-        file dist/volume_calculator_gui.app/Contents/MacOS/volume_calculator_gui
-        # Check the Info.plist
-        plutil -p dist/volume_calculator_gui.app/Contents/Info.plist
+        ls -la dist/
         
     - name: Create ZIP archive
       run: |
         cd dist
         zip -r VolumeCalculator-macOS.zip volume_calculator_gui.app
-        ls -la
         
-    - name: Upload macOS application artifact
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: VolumeCalculator-macOS
         path: dist/VolumeCalculator-macOS.zip
         retention-days: 30
-        
-    - name: Upload to GitHub Release (if triggered by release)
-      if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: dist/VolumeCalculator-macOS.zip
-        asset_name: VolumeCalculator-macOS.zip
-        asset_content_type: application/zip
