@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+matplotlib.use('TkAgg')
 from mpl_toolkits.mplot3d import Axes3D
 import sympy as sp
 import tkinter as tk
