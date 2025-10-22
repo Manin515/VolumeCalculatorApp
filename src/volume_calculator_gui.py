@@ -1,31 +1,54 @@
+#!/usr/bin/env python3
+"""
+Volume of Revolution Calculator
+Debug version for py2app
+"""
+
+print("=== Starting Volume Calculator ===")
+
 import sys
 import os
+print(f"Python version: {sys.version}")
+print(f"Current directory: {os.getcwd()}")
 
 # Set matplotlib backend first
-import matplotlib
-matplotlib.use('TkAgg')
+try:
+    import matplotlib
+    matplotlib.use('TkAgg')
+    print("✅ Matplotlib backend set to TkAgg")
+except Exception as e:
+    print(f"❌ Matplotlib error: {e}")
 
 try:
     import numpy as np
+    print("✅ NumPy imported")
+    
     import matplotlib.pyplot as plt
+    print("✅ Matplotlib pyplot imported")
+    
     from mpl_toolkits.mplot3d import Axes3D
+    print("✅ 3D plotting imported")
+    
     import sympy as sp
+    print("✅ SymPy imported")
+    
     import tkinter as tk
     from tkinter import ttk, messagebox, simpledialog, filedialog
+    print("✅ Tkinter imported")
     
     # Optional STL support
     try:
         from stl import mesh
         STL_AVAILABLE = True
-        print("STL support: Enabled")
+        print("✅ STL support enabled")
     except ImportError:
         STL_AVAILABLE = False
-        print("STL support: Disabled")
+        print("⚠️ STL support disabled")
         
-    print("✅ All imports successful!")
+    print("🎉 All imports successful!")
     
 except ImportError as e:
-    print(f"❌ Import error: {e}")
+    print(f"❌ Critical import error: {e}")
     sys.exit(1)
 
 class VolumeCalculator:
