@@ -60,21 +60,21 @@ jobs:
         ls -la dist/ || echo "No dist folder in alias mode"
         
     - name: Create ZIP if app exists
-      if: success()
+      id: zip_creator
       run: |
         if [ -d "dist/volume_calculator_gui.app" ]; then
           echo "✅ App found, creating ZIP"
           cd dist
           zip -r VolumeCalculator-macOS.zip volume_calculator_gui.app
           ls -la
+          echo "ZIP_CREATED=true" >> $GITHUB_OUTPUT
         else
           echo "❌ No app found in dist folder"
-          # Try to find any .app files
-          find . -name "*.app" -type d
+          echo "ZIP_CREATED=false" >> $GITHUB_OUTPUT
         fi
         
     - name: Upload artifact
-      if: success() && exists('dist/VolumeCalculator-macOS.zip')
+      if: steps.zip_creator.outputs.ZIP_CREATED == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: VolumeCalculator-macOS
